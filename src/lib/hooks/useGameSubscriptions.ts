@@ -32,7 +32,9 @@ export interface PlayerInfo {
 
 export type { PublicState };
 
-const POLL_MS = 2000;
+const FALLBACK_POLL_MS = 10_000;
+const RELOAD_DEBOUNCE_MS = 300;
+const PRESENCE_HEARTBEAT_MS = 60_000;
 
 function mapGameRow(row: Record<string, unknown>): GameMeta {
   return {
@@ -118,7 +120,7 @@ function usePresence(gameId: string | null) {
     void bind();
     heartbeat = setInterval(() => {
       void mark(true);
-    }, 20_000);
+    }, PRESENCE_HEARTBEAT_MS);
 
     const onOnline = () => {
       setConnectionLabel("reconnecting");
@@ -144,9 +146,8 @@ function usePresence(gameId: string | null) {
 }
 
 /**
- * Live room state via:
- * 1) Supabase Realtime WebSocket (postgres_changes)
- * 2) Lightweight polling fallback every 2s (friends-proof)
+ * Live room state via Supabase Realtime.
+ * Polls every 10s only while the channel is not subscribed.
  */
 export function useGameRoom(gameId: string | null, reloadToken = 0) {
   const { uid } = useAuth();
@@ -159,6 +160,9 @@ export function useGameRoom(gameId: string | null, reloadToken = 0) {
   const [loading, setLoading] = useState(Boolean(gameId));
   const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "live" | "polling">("connecting");
   const inFlight = useRef(false);
+  const pendingReload = useRef(false);
+  const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reloadAgain = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => undefined);
 
   const applyState = useCallback(
     (payload: {
@@ -182,7 +186,11 @@ export function useGameRoom(gameId: string | null, reloadToken = 0) {
 
   const reload = useCallback(
     async (opts?: { silent?: boolean }) => {
-      if (!gameId || inFlight.current) return;
+      if (!gameId) return;
+      if (inFlight.current) {
+        pendingReload.current = true;
+        return;
+      }
       inFlight.current = true;
       if (!opts?.silent) setLoading(true);
       try {
@@ -211,9 +219,30 @@ export function useGameRoom(gameId: string | null, reloadToken = 0) {
       } finally {
         inFlight.current = false;
         if (!opts?.silent) setLoading(false);
+        if (pendingReload.current) {
+          pendingReload.current = false;
+          queueMicrotask(() => {
+            void reloadAgain.current({ silent: true });
+          });
+        }
       }
     },
     [gameId, applyState],
+  );
+
+  useEffect(() => {
+    reloadAgain.current = reload;
+  }, [reload]);
+
+  const scheduleReload = useCallback(
+    (opts?: { silent?: boolean }) => {
+      if (reloadTimer.current) clearTimeout(reloadTimer.current);
+      reloadTimer.current = setTimeout(() => {
+        reloadTimer.current = null;
+        void reload(opts);
+      }, RELOAD_DEBOUNCE_MS);
+    },
+    [reload],
   );
 
   useEffect(() => {
@@ -233,44 +262,52 @@ export function useGameRoom(gameId: string | null, reloadToken = 0) {
         "postgres_changes",
         { event: "*", schema: "public", table: "games", filter: `id=eq.${gameId}` },
         () => {
-          void reload({ silent: true });
+          scheduleReload({ silent: true });
         },
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "players", filter: `game_id=eq.${gameId}` },
         () => {
-          void reload({ silent: true });
+          scheduleReload({ silent: true });
         },
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "hands", filter: `game_id=eq.${gameId}` },
         () => {
-          void reload({ silent: true });
+          scheduleReload({ silent: true });
         },
       )
       .on("broadcast", { event: "room_updated" }, () => {
-        void reload({ silent: true });
+        scheduleReload({ silent: true });
       })
       .subscribe((status) => {
         if (status === "SUBSCRIBED") setRealtimeStatus("live");
-        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setRealtimeStatus("polling");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          setRealtimeStatus("polling");
+        }
       });
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [gameId, isMember, reload]);
+  }, [gameId, isMember, scheduleReload]);
 
-  // Fallback poll so friends always see lobby/start/play updates
   useEffect(() => {
-    if (!gameId || !isMember) return;
+    return () => {
+      if (reloadTimer.current) clearTimeout(reloadTimer.current);
+    };
+  }, []);
+
+  // Fallback only while the websocket is down or still connecting.
+  useEffect(() => {
+    if (!gameId || !isMember || realtimeStatus === "live") return;
     const id = setInterval(() => {
-      void reload({ silent: true });
-    }, POLL_MS);
+      scheduleReload({ silent: true });
+    }, FALLBACK_POLL_MS);
     return () => clearInterval(id);
-  }, [gameId, isMember, reload]);
+  }, [gameId, isMember, realtimeStatus, scheduleReload]);
 
   const connectionLabel = usePresence(isMember && uid ? gameId : null);
 

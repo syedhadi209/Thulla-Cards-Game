@@ -26,6 +26,12 @@ function copySessionCookies(from: NextResponse, to: NextResponse) {
 
 /** Refresh the auth session and enforce protected / public route rules. */
 export async function updateSession(request: NextRequest) {
+  // API routes authenticate with getUser() inside the handler. Skipping
+  // getClaims() here avoids a second Auth request on every game poll.
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -57,11 +63,6 @@ export async function updateSession(request: NextRequest) {
   const signedIn = Boolean(data?.claims);
 
   const { pathname } = request.nextUrl;
-
-  // API routes keep returning JSON 401 via requireUser — do not HTML-redirect them.
-  if (pathname.startsWith("/api/")) {
-    return supabaseResponse;
-  }
 
   if (!signedIn && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();
