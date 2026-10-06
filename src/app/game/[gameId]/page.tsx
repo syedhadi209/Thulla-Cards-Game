@@ -97,8 +97,8 @@ export default function GamePage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center px-4 py-6">
-      <div className="mb-4 flex w-full max-w-5xl items-center justify-between gap-3">
+    <main className="flex min-h-full flex-1 flex-col items-center px-4 py-4">
+      <div className="mb-4 flex w-full max-w-6xl items-center justify-between gap-3">
         <Link href="/" className="font-[family-name:var(--font-display)] text-xl text-[var(--cream)]">
           Thulla
         </Link>

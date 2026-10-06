@@ -133,6 +133,60 @@ body {
   animation: hand-deal-out 0.28s ease-in forwards;
 }
 
+@keyframes seat-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 168, 75, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(212, 168, 75, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 168, 75, 0);
+  }
+}
+
+.seat-turn {
+  animation: seat-pulse 1.6s ease-out infinite;
+}
+
+.seat-escaped {
+  transform: translateY(6px);
+  filter: saturate(0.55);
+  opacity: 0.62;
+}
+
+.card-legal {
+  box-shadow:
+    0 0 0 2px rgba(212, 168, 75, 0.7),
+    0 10px 22px rgba(0, 0, 0, 0.32);
+}
+
+@keyframes trick-clear {
+  to {
+    opacity: 0;
+    transform: scale(0.84) translateY(10px);
+  }
+}
+
+.trick-clearing {
+  animation: trick-clear 0.4s ease-in forwards;
+}
+
+@keyframes podium-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.podium-rise {
+  animation: podium-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Auth pages */
 .auth-grain {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");

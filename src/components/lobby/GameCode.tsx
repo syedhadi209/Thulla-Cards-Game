@@ -19,19 +19,25 @@ export function GameCode({ gameId }: { gameId: string }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-lg bg-black/25 px-4 py-3 text-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--felt-gold)]/80">Game ID</p>
-        <p className="font-[family-name:var(--font-display)] text-3xl tracking-[0.25em] text-[var(--cream)]">
+    <div className="flex flex-col items-center gap-3">
+      <button
+        type="button"
+        onClick={() => copy(gameId, "Game ID")}
+        className="rounded-2xl border border-[var(--felt-gold)]/40 bg-[#07160f]/75 px-6 py-3 text-center shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition hover:border-[var(--felt-gold)]"
+      >
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--felt-gold)]">
+          Game code
+        </span>
+        <span className="mt-1 block font-[family-name:var(--font-display)] text-4xl tracking-[0.22em] text-[var(--cream)]">
           {gameId}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
+        </span>
+      </button>
+      <div className="flex flex-wrap justify-center gap-2">
         <Button type="button" variant="secondary" onClick={() => copy(gameId, "Game ID")}>
-          Copy Game ID
+          Copy code
         </Button>
         <Button type="button" variant="secondary" onClick={() => copy(shareUrl, "Link")}>
-          Copy Share Link
+          Copy link
         </Button>
       </div>
       {toast && <p className="text-sm text-[var(--felt-gold)]">{toast}</p>}

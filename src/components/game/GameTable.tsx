@@ -7,6 +7,7 @@ import { GameTimer } from "@/components/game/GameTimer";
 import { TurnIndicator } from "@/components/game/TurnIndicator";
 import { ActionControls } from "@/components/game/ActionControls";
 import { TrickArea } from "@/components/game/TrickArea";
+import { SEAT_POSITION, seatDirection } from "@/components/game/seatLayout";
 import { Toast } from "@/components/common/Toast";
 import { useAuth } from "@/lib/supabase/auth";
 import { mapApiError, playAction } from "@/lib/api/game";
@@ -38,7 +39,7 @@ export function GameTable({
 
   const isMyTurn = meta.currentTurn === uid;
   const order = publicState.playerOrder ?? Object.keys(players);
-  const opponents = order.filter((id) => id !== uid);
+  const seated = order.filter((id) => players[id]);
   const displayHand = flyingCard ? hand.filter((c) => c !== flyingCard) : hand;
 
   const playable = useMemo(() => {
@@ -95,48 +96,43 @@ export function GameTable({
   }, [selected, uid, gameId, onPlayed]);
 
   return (
-    <div className="flex w-full max-w-5xl flex-col items-center gap-4 px-3 py-4">
-      <div className="flex w-full items-center justify-between gap-2">
-        <TurnIndicator label={turnLabel} />
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center">
+      <div className="flex w-full items-center justify-between gap-3 px-1">
+        <TurnIndicator label={turnLabel} active={isMyTurn} />
         <GameTimer expiresAt={meta.turnExpiresAt} />
       </div>
 
       {connectionLabel !== "connected" && (
-        <p className="text-xs text-amber-200">
+        <p className="mt-2 text-xs text-amber-200">
           {connectionLabel === "reconnecting" ? "Reconnecting…" : "Connection lost"}
         </p>
       )}
 
-      <div className="flex w-full flex-wrap justify-center gap-3">
-        {opponents.map((id) => (
-          <PlayerSeat
-            key={id}
-            player={{ id, ...players[id]! }}
-            isTurn={meta.currentTurn === id}
-            isSelf={false}
-            isHost={meta.hostId === id}
+      <div className="relative mt-3 h-[min(54vh,30rem)] w-full max-w-4xl">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-[10%] inset-y-[12%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,#2a7a4e_0%,#145536_48%,#0c3324_100%)] shadow-[inset_0_0_40px_rgba(0,0,0,0.35),0_18px_40px_rgba(0,0,0,0.28)] ring-1 ring-black/30"
+        />
+        <div className="absolute inset-x-[18%] inset-y-[22%] z-30">
+          <TrickArea
+            trickCards={trickCards}
+            players={players}
+            selfId={uid}
+            playerOrder={order}
           />
+        </div>
+
+        {seated.map((id) => (
+          <div key={id} className={["absolute", SEAT_POSITION[seatDirection(id, uid, order)]].join(" ")}>
+            <PlayerSeat
+              player={{ id, ...players[id]! }}
+              isTurn={meta.currentTurn === id}
+              isSelf={id === uid}
+              isHost={meta.hostId === id}
+            />
+          </div>
         ))}
       </div>
-
-      <div className="relative flex min-h-[180px] w-full max-w-xl flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_center,#1f6b45_0%,#0d3b28_70%)] p-6 shadow-inner ring-1 ring-black/30">
-        <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[var(--cream)]/50">Trick</p>
-        <TrickArea
-          trickCards={trickCards}
-          players={players}
-          selfId={uid}
-          playerOrder={order}
-        />
-      </div>
-
-      {uid && players[uid] && (
-        <PlayerSeat
-          player={{ id: uid, ...players[uid] }}
-          isTurn={isMyTurn}
-          isSelf
-          isHost={meta.hostId === uid}
-        />
-      )}
 
       <PlayerHand
         hand={displayHand}
@@ -146,7 +142,11 @@ export function GameTable({
         disabled={!isMyTurn || busy}
       />
 
-      <ActionControls canPlay={Boolean(selected) && isMyTurn} busy={busy} onPlay={onPlay} />
+      <div className="h-12">
+        {(selected || busy) && (
+          <ActionControls canPlay={Boolean(selected) && isMyTurn} busy={busy} onPlay={onPlay} />
+        )}
+      </div>
 
       <Toast message={toast} onClose={() => setToast(null)} />
     </div>

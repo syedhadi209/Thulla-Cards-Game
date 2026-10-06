@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { Instrument_Serif, Outfit } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const display = Fraunces({
+const display = Instrument_Serif({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  weight: "400",
 });
 
-const body = Source_Sans_3({
+const body = Outfit({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

@@ -27,39 +27,48 @@ export function PlayingCard({
   emphasize?: boolean;
 }) {
   const [broken, setBroken] = useState(false);
-  const sizeClass = compact ? "h-[5rem] w-[3.5rem]" : "h-[8.25rem] w-[5.75rem]";
+  const sizeClass = compact ? "h-[4.75rem] w-[3.5rem]" : "h-[7.4rem] w-[5.45rem]";
   const showBack = faceDown || !cardId || broken;
   const src = showBack ? "/cards/back.png" : cardSrc(cardId);
+  const muted = Boolean(onClick) && !playable;
+  const legal = Boolean(playable && onClick && !disabled && !selected);
 
   const shellClass = [
-    "playing-card relative shrink-0 overflow-hidden rounded-[0.55rem]",
-    "bg-[#1a1a1a] transition-[transform,box-shadow,filter] duration-200 ease-out",
-    "shadow-[0_4px_0_rgba(0,0,0,0.25),0_10px_22px_rgba(0,0,0,0.4)]",
+    "playing-card relative isolate shrink-0 overflow-hidden rounded-[0.85rem]",
+    "bg-[#f6f1e6] transition-[transform,box-shadow,filter] duration-200 ease-out",
+    "shadow-[0_8px_18px_rgba(0,0,0,0.28)] ring-1 ring-black/10",
     sizeClass,
     selected
-      ? "-translate-y-5 scale-[1.06] shadow-[0_8px_0_rgba(0,0,0,0.2),0_18px_32px_rgba(0,0,0,0.5)] ring-2 ring-[var(--felt-gold)]"
+      ? "-translate-y-5 scale-[1.06] shadow-[0_16px_28px_rgba(0,0,0,0.4)] ring-2 ring-[var(--felt-gold)]"
       : "",
-    playable && onClick && !disabled
-      ? "hover:-translate-y-3 hover:shadow-[0_6px_0_rgba(0,0,0,0.22),0_16px_28px_rgba(0,0,0,0.45)] cursor-pointer"
-      : "",
-    !playable && onClick ? "opacity-50 saturate-[0.7]" : "",
-    disabled ? "cursor-not-allowed opacity-40" : "",
-    emphasize ? "ring-2 ring-[var(--felt-gold)] scale-105" : "",
+    legal ? "card-legal cursor-pointer hover:-translate-y-3" : "",
+    playable && onClick && !disabled && !legal ? "cursor-pointer hover:-translate-y-2" : "",
+    muted ? "cursor-default saturate-[0.8]" : "",
+    disabled ? "cursor-not-allowed" : "",
+    emphasize ? "ring-2 ring-[var(--felt-gold)]" : "",
   ].join(" ");
 
   const style: CSSProperties = {
-    aspectRatio: "338 / 489",
+    aspectRatio: "140 / 190",
   };
 
   const image = (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={showBack ? "Card back" : cardId}
-      draggable={false}
-      className="h-full w-full object-cover select-none pointer-events-none"
-      onError={() => setBroken(true)}
-    />
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={showBack ? "Card back" : cardId}
+        draggable={false}
+        className="h-full w-full select-none bg-[#f6f1e6] object-cover pointer-events-none"
+        onError={() => setBroken(true)}
+      />
+      {muted && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[#efe6d2]/45"
+        />
+      )}
+    </>
   );
 
   if (onClick) {

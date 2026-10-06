@@ -1,6 +1,11 @@
-export function TurnIndicator({ label }: { label: string }) {
+export function TurnIndicator({ label, active }: { label: string; active?: boolean }) {
   return (
-    <p className="text-center text-sm tracking-wide text-[var(--felt-gold)] animate-[pulse_2s_ease-in-out_infinite]">
+    <p
+      className={[
+        "text-sm font-medium tracking-wide",
+        active ? "text-[var(--felt-gold)]" : "text-[var(--cream)]/75",
+      ].join(" ")}
+    >
       {label}
     </p>
   );

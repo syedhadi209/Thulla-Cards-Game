@@ -3,12 +3,12 @@
 import { PlayingCard } from "@/components/game/PlayingCard";
 import { sortHand } from "@/lib/game/clientEngine";
 
+/** Negative margin so roughly half of each card stays visible. */
 function handOverlap(count: number) {
   if (count <= 1) return 0;
-  if (count <= 8) return -18;
-  if (count <= 12) return -28;
-  if (count <= 16) return -36;
-  return -42;
+  if (count <= 7) return -20;
+  if (count <= 12) return -30;
+  return -38;
 }
 
 export function PlayerHand({
@@ -29,10 +29,10 @@ export function PlayerHand({
   const mid = (sorted.length - 1) / 2;
 
   return (
-    <div className="flex w-full max-w-5xl items-end justify-center overflow-x-auto px-3 pb-4 pt-10">
+    <div className="flex w-full max-w-5xl items-end justify-center overflow-x-auto px-3 pb-2 pt-6">
       {sorted.map((cardId, i) => {
-        const tilt = (i - mid) * 1.15;
-        const lift = Math.abs(i - mid) * 1.4;
+        const tilt = (i - mid) * 1.05;
+        const lift = Math.abs(i - mid) * 1.1;
         const isSelected = selected === cardId;
 
         return (
@@ -42,9 +42,7 @@ export function PlayerHand({
             style={{
               marginLeft: i === 0 ? 0 : overlap,
               zIndex: isSelected ? sorted.length + 2 : i,
-              transform: isSelected
-                ? undefined
-                : `translateY(${lift}px) rotate(${tilt}deg)`,
+              transform: isSelected ? undefined : `translateY(${lift}px) rotate(${tilt}deg)`,
             }}
           >
             <PlayingCard
