@@ -1,26 +1,181 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --felt-deep: #0b2418;
+  --felt-mid: #134d32;
+  --felt-gold: #d4a84b;
+  --cream: #f3ead3;
+  --card-face: #f7f1e4;
+  --background: var(--felt-deep);
+  --foreground: var(--cream);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse at top, rgba(212, 168, 75, 0.12), transparent 45%),
+    radial-gradient(ellipse at bottom, rgba(19, 77, 50, 0.9), var(--felt-deep));
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.55s ease-out both;
+}
+
+@keyframes card-play-self {
+  0% {
+    opacity: 0;
+    transform: translateY(72px) scale(0.85) rotate(-6deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.06) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes card-play-top {
+  0% {
+    opacity: 0;
+    transform: translateY(-64px) scale(0.85) rotate(4deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(8px) scale(1.06) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes card-play-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-72px) translateY(-12px) scale(0.85) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(6px) scale(1.06) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes card-play-right {
+  0% {
+    opacity: 0;
+    transform: translateX(72px) translateY(-12px) scale(0.85) rotate(10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-6px) scale(1.06) rotate(-3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+  }
+}
+
+.card-play-in {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+}
+
+.card-play-from-self {
+  animation-name: card-play-self;
+}
+
+.card-play-from-top {
+  animation-name: card-play-top;
+}
+
+.card-play-from-left {
+  animation-name: card-play-left;
+}
+
+.card-play-from-right {
+  animation-name: card-play-right;
+}
+
+@keyframes hand-deal-out {
+  to {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.9);
+  }
+}
+
+.card-leaving-hand {
+  animation: hand-deal-out 0.28s ease-in forwards;
+}
+
+/* Auth pages */
+.auth-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+@keyframes auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-enter {
+  animation: auth-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-enter-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.auth-enter-delay-2 {
+  animation-delay: 0.16s;
+}
+
+.auth-enter-delay-3 {
+  animation-delay: 0.24s;
+}
+
+@keyframes auth-float-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -42%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.auth-float-card {
+  animation: auth-float-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
